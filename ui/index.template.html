@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PayeeGuard — Verified Payables Agent on Aevum</title>
+<style>
+  :root { --bg:#0b1020; --card:#141b31; --line:#26304f; --txt:#e8ecf7; --dim:#93a0bf; --ok:#2fbf71; --bad:#e5534b; --warn:#e3b341; --acc:#5b8cff; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:var(--bg); color:var(--txt); }
+  header { display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--line); }
+  h1 { font-size:20px; margin:0; } h2 { font-size:16px; margin:0 0 10px; }
+  .sub { color:var(--dim); font-size:13px; }
+  main { display:grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap:14px; padding:16px 20px; max-width:1280px; margin:0 auto; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:14px; }
+  .wide { grid-column: 1 / -1; }
+  label { display:block; font-size:12px; color:var(--dim); margin:8px 0 4px; }
+  input, select { width:100%; padding:8px; border-radius:8px; border:1px solid var(--line); background:#0d1428; color:var(--txt); }
+  button { margin-top:10px; padding:8px 14px; border:0; border-radius:8px; background:var(--acc); color:#fff; cursor:pointer; font-weight:600; }
+  button.secondary { background:#2a3554; } button.danger { background:var(--bad); }
+  button:disabled { opacity:.5; cursor:not-allowed; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:99px; font-size:12px; font-weight:700; }
+  .b-ok { background:rgba(47,191,113,.18); color:var(--ok); } .b-bad { background:rgba(229,83,75,.18); color:var(--bad); }
+  .b-warn { background:rgba(227,179,65,.18); color:var(--warn); } .b-dim { background:rgba(147,160,191,.18); color:var(--dim); }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { text-align:left; padding:6px 4px; border-bottom:1px solid var(--line); vertical-align:top; }
+  .mono { font-family: ui-monospace, Menlo, monospace; font-size:12px; word-break:break-all; }
+  a { color:var(--acc); } .log { font-size:12.5px; line-height:1.55; }
+  .log div { padding:5px 0; border-bottom:1px dashed var(--line); }
+  #status { font-size:13px; min-height:18px; } .err { color:var(--bad); } .good { color:var(--ok); }
+  .row { display:flex; gap:8px; } .row > * { flex:1; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>🛡️ PayeeGuard</h1>
+    <div class="sub">Verified payables agent — pays tUSD8 invoices <b>only to verified payees</b>, under a capped, revocable agent mandate. Aevum testnet (chain 44005).</div>
+  </div>
+  <div>
+    <div id="walletInfo" class="sub">wallet: not connected</div>
+    <button id="btnConnect">Connect wallet</button>
+  </div>
+</header>
+
+<main>
+  <section class="card">
+    <h2>✅ Confirmation of Payee</h2>
+    <div class="sub">Check who an address (or name) really is before paying.</div>
+    <label>Payee name</label>
+    <div class="row"><input id="copName" placeholder="Acme Studio"><button id="btnCopName" class="secondary">Look up name</button></div>
+    <label>Payout address</label>
+    <div class="row"><input id="copAddr" placeholder="0x…"><button id="btnCopAddr" class="secondary">Look up address</button></div>
+    <div id="copResult" style="margin-top:10px"></div>
+  </section>
+
+  <section class="card">
+    <h2>🏷️ Register payee</h2>
+    <label>Display name</label><input id="regName" placeholder="Acme Studio">
+    <label>Metadata (any text — hashed on-chain)</label><input id="regMeta" placeholder="website / KYC pack reference">
+    <label>Payout address</label><input id="regAddr" placeholder="0x…">
+    <button id="btnRegister">Register payee</button>
+    <div class="row">
+      <div><label>Payee ID</label><input id="verId" type="number" min="1" placeholder="1"></div>
+      <div><label>&nbsp;</label><button id="btnVerify" class="secondary">Verify (owner)</button></div>
+      <div><label>&nbsp;</label><button id="btnUnverify" class="danger">Revoke verification</button></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>🧾 Create invoice</h2>
+    <label>Payee ID</label><input id="invPayee" type="number" min="1" placeholder="1">
+    <label>Amount (tUSD8)</label><input id="invAmount" type="number" step="0.000001" placeholder="120">
+    <label>Reference</label><input id="invRef" placeholder="INV-0142">
+    <label>Due date (optional — empty = due now)</label><input id="invDue" type="datetime-local">
+    <button id="btnCreateInv">Create invoice</button>
+    <div class="sub" style="margin-top:8px">Payment pulls tUSD8 from you via the InvoiceBook — approve the book first (Mandate card) up to your budget.</div>
+  </section>
+
+  <section class="card">
+    <h2>🤖 Agent mandate</h2>
+    <label>Agent address</label><input id="manAgent" placeholder="0x…">
+    <div class="row">
+      <div><label>Per-payment cap (tUSD8)</label><input id="manCap" type="number" placeholder="150"></div>
+      <div><label>Total budget (tUSD8)</label><input id="manBudget" type="number" placeholder="500"></div>
+      <div><label>Expiry (days)</label><input id="manDays" type="number" placeholder="7"></div>
+    </div>
+    <button id="btnGrant">Grant mandate</button>
+    <button id="btnApprove" class="secondary">Approve InvoiceBook (budget)</button>
+    <div class="row">
+      <div><label>Mandate ID</label><input id="manId" type="number" min="1" placeholder="1"></div>
+      <div><label>&nbsp;</label><button id="btnManLoad" class="secondary">Load</button></div>
+      <div><label>&nbsp;</label><button id="btnRevoke" class="danger">Revoke mandate</button></div>
+    </div>
+    <div id="manInfo" style="margin-top:8px"></div>
+    <div class="row">
+      <div><label>Pay via mandate — invoice ID</label><input id="manInvId" type="number" min="1" placeholder="1"></div>
+      <div><label>&nbsp;</label><button id="btnManPay">Agent pays invoice</button></div>
+    </div>
+  </section>
+
+  <section class="card wide">
+    <h2>📒 Invoices <button id="btnRefreshInv" class="secondary" style="margin:0; float:right">Refresh</button></h2>
+    <table><thead><tr><th>ID</th><th>Reference</th><th>Payee</th><th>Amount</th><th>Status</th><th>Payer</th><th>Executor</th><th>Actions</th></tr></thead>
+    <tbody id="invBody"><tr><td colspan="8" class="sub">Connect a wallet (read-only is fine) to load.</td></tr></tbody></table>
+  </section>
+
+  <section class="card wide">
+    <h2>🧭 Activity log <button id="btnRefreshLog" class="secondary" style="margin:0; float:right">Refresh</button></h2>
+    <div id="activity" class="log"><div class="sub">No events loaded yet.</div></div>
+  </section>
+
+  <section class="card wide"><div id="status">Ready.</div></section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+<script>
+/* ================= CONFIG (patched by scripts/build-ui.mjs / agent wire step) ================= */
+const CONFIG = {
+  rpcUrl: "https://rpc-test.qday.info",
+  chainId: 44005,
+  explorer: "https://explorer-test.qday.info",
+  //__CONFIG_ADDRESSES_START__
+  addresses: { payeeRegistry: "", invoiceBook: "", agentMandate: "", tUsd8: "0x456569838f1d43009A91ebA4263147Afd7233483" },
+  //__CONFIG_ADDRESSES_END__
+  deployBlock: 0,
+};
+const ABIS = /*__ABIS__*/{};
+/* ============================================================================================ */
+
+const $ = (id) => document.getElementById(id);
+const status = (msg, cls = "") => { $("status").innerHTML = `<span class="${cls}">${msg}</span>`; };
+const txLink = (h) => `<a href="${CONFIG.explorer}/tx/${h}" target="_blank" rel="noopener">${h.slice(0, 18)}…</a>`;
+const short = (a) => a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "—";
+const fmt = (atomic) => `${ethers.formatUnits(atomic, 6)} tUSD8`;
+
+let provider, signer, account;
+const readProvider = () => new ethers.JsonRpcProvider(CONFIG.rpcUrl);
+const contracts = (p) => ({
+  registry: new ethers.Contract(CONFIG.addresses.payeeRegistry, ABIS.payeeRegistry, p),
+  book: new ethers.Contract(CONFIG.addresses.invoiceBook, ABIS.invoiceBook, p),
+  mandate: new ethers.Contract(CONFIG.addresses.agentMandate, ABIS.agentMandate, p),
+  token: new ethers.Contract(CONFIG.addresses.tUsd8, ABIS.erc20, p),
+});
+const needContracts = () => {
+  if (!CONFIG.addresses.payeeRegistry) { status("Contract addresses not wired yet — deploy first, then place deployments.json next to this page (or rebuild the UI).", "err"); throw new Error("no addresses"); }
+};
+
+async function loadDeployments() {
+  try {
+    const r = await fetch("deployments.json", { cache: "no-store" });
+    if (r.ok) {
+      const d = await r.json();
+      CONFIG.addresses = { payeeRegistry: d.payeeRegistry, invoiceBook: d.invoiceBook, agentMandate: d.agentMandate, tUsd8: d.tUsd8 || CONFIG.addresses.tUsd8 };
+      if (d.deployBlock) CONFIG.deployBlock = d.deployBlock;
+      console.log("deployments.json loaded", CONFIG.addresses);
+    }
+  } catch (_) { /* CONFIG defaults apply */ }
+}
+
+async function connect() {
+  if (!window.ethereum) { status("No wallet extension found. Install MetaMask or use the agent runner CLI.", "err"); return; }
+  provider = new ethers.BrowserProvider(window.ethereum);
+  await provider.send("eth_requestAccounts", []);
+  try {
+    await provider.send("wallet_switchEthereumChain", [{ chainId: "0x" + CONFIG.chainId.toString(16) }]);
+  } catch (e) {
+    await provider.send("wallet_addEthereumChain", [{ chainId: "0x" + CONFIG.chainId.toString(16), chainName: "Aevum Testnet", rpcUrls: [CONFIG.rpcUrl], nativeCurrency: { name: "tQDAY", symbol: "tQDAY", decimals: 18 }, blockExplorerUrls: [CONFIG.explorer] }]);
+  }
+  signer = await provider.getSigner();
+  account = await signer.getAddress();
+  $("walletInfo").textContent = `wallet: ${account}`;
+  status(`Connected as ${account}`, "good");
+  refreshInvoices(); refreshLog();
+}
+
+async function sendTx(label, fn) {
+  needContracts();
+  if (!signer) await connect();
+  try {
+    status(`${label}: waiting for signature…`);
+    const tx = await fn(contracts(signer));
+    status(`${label}: sent ${txLink(tx.hash)} — confirming…`);
+    const rc = await tx.wait();
+    status(`${label}: confirmed in block ${rc.blockNumber} — ${txLink(tx.hash)}`, "good");
+    refreshInvoices(); refreshLog();
+    return rc;
+  } catch (e) {
+    status(`${label} failed: ${(e.shortMessage || e.message || e).toString().slice(0, 220)}`, "err");
+    throw e;
+  }
+}
+
+/* Confirmation of Payee */
+function copCard(id, name, payout, verified) {
+  if (!id || id === 0n) return `<span class="badge b-bad">NOT REGISTERED</span> <span class="sub">No payee identity is bound to this ${payout ? "address" : "name"}.</span>`;
+  return `<div><span class="badge ${verified ? "b-ok" : "b-warn"}">${verified ? "✓ PAYEE VERIFIED" : "⚠ REGISTERED — NOT VERIFIED"}</span></div>
+    <div style="margin-top:6px">Payee <b>#${id}</b> — <b>${name || ""}</b><br><span class="mono">${payout || ""}</span></div>`;
+}
+$("btnCopAddr").onclick = async () => {
+  needContracts();
+  const a = $("copAddr").value.trim();
+  const [id, name, verified] = await contracts(readProvider()).registry.confirmPayee(a);
+  $("copResult").innerHTML = copCard(id, name, a, verified);
+};
+$("btnCopName").onclick = async () => {
+  needContracts();
+  const n = $("copName").value.trim();
+  const [id, payout, verified] = await contracts(readProvider()).registry.confirmPayeeByName(n);
+  $("copResult").innerHTML = copCard(id, n, payout, verified);
+};
+
+/* Registry */
+$("btnRegister").onclick = () => sendTx("Register payee", async (c) => {
+  const meta = ethers.keccak256(ethers.toUtf8Bytes($("regMeta").value || ""));
+  return c.registry.registerPayee($("regName").value.trim(), meta, $("regAddr").value.trim());
+});
+$("btnVerify").onclick = () => sendTx("Verify payee", (c) => c.registry.setVerified(BigInt($("verId").value), true));
+$("btnUnverify").onclick = () => sendTx("Revoke verification", (c) => c.registry.setVerified(BigInt($("verId").value), false));
+
+/* Invoices */
+$("btnCreateInv").onclick = () => sendTx("Create invoice", async (c) => {
+  const due = $("invDue").value ? BigInt(Math.floor(new Date($("invDue").value).getTime() / 1000)) : 0n;
+  return c.book.createInvoice(BigInt($("invPayee").value), ethers.parseUnits($("invAmount").value, 6), $("invRef").value.trim(), due, ethers.ZeroHash);
+});
+async function refreshInvoices() {
+  if (!CONFIG.addresses.invoiceBook) return;
+  const c = contracts(signer || readProvider());
+  const count = await c.book.invoiceCount();
+  const rows = [];
+  for (let id = 1n; id <= count; id++) {
+    const inv = await c.book.getInvoice(id);
+    const st = ["Issued", "Paid", "Cancelled"][inv.status];
+    const badge = st === "Paid" ? "b-ok" : st === "Issued" ? "b-warn" : "b-dim";
+    rows.push(`<tr><td>${id}</td><td>${inv.invoiceRef}</td><td>#${inv.payeeId}</td><td>${fmt(inv.amount)}</td>
+      <td><span class="badge ${badge}">${st}</span></td><td class="mono">${short(inv.payer)}</td><td class="mono">${inv.executor === ethers.ZeroAddress ? "—" : short(inv.executor)}</td>
+      <td>${st === "Issued" ? `<button class="secondary" onclick="payDirect(${id})">Pay directly</button> <button class="danger" onclick="cancelInv(${id})">Cancel</button>` : ""}</td></tr>`);
+  }
+  $("invBody").innerHTML = rows.join("") || `<tr><td colspan="8" class="sub">No invoices yet.</td></tr>`;
+}
+window.payDirect = (id) => sendTx(`Pay invoice #${id}`, (c) => c.book.payInvoice(BigInt(id)));
+window.cancelInv = (id) => sendTx(`Cancel invoice #${id}`, (c) => c.book.cancelInvoice(BigInt(id)));
+$("btnRefreshInv").onclick = refreshInvoices;
+
+/* Mandate */
+$("btnApprove").onclick = () => sendTx("Approve InvoiceBook", (c) =>
+  c.token.approve(CONFIG.addresses.invoiceBook, ethers.parseUnits($("manBudget").value || "500", 6)));
+$("btnGrant").onclick = () => sendTx("Grant mandate", (c) =>
+  c.mandate.grantMandate($("manAgent").value.trim(), ethers.parseUnits($("manCap").value, 6), ethers.parseUnits($("manBudget").value, 6),
+    BigInt(Math.floor(Date.now() / 1000) + Number($("manDays").value || 7) * 86400), CONFIG.addresses.invoiceBook, false, []));
+$("btnRevoke").onclick = () => sendTx("Revoke mandate", (c) => c.mandate.revokeMandate(BigInt($("manId").value)));
+$("btnManPay").onclick = () => sendTx("Agent pays invoice", (c) => c.mandate.payInvoice(BigInt($("manId").value), BigInt($("manInvId").value)));
+$("btnManLoad").onclick = async () => {
+  needContracts();
+  const m = await contracts(readProvider()).mandate.getMandate(BigInt($("manId").value));
+  $("manInfo").innerHTML = `<div>Owner <span class="mono">${short(m.owner)}</span> · Agent <span class="mono">${short(m.agent)}</span></div>
+    <div>Cap ${fmt(m.perPaymentCap)} · Budget ${fmt(m.totalBudget)} · Spent ${fmt(m.spent)} · Remaining <b>${fmt(m.totalBudget - m.spent)}</b></div>
+    <div>Expiry ${new Date(Number(m.expiry) * 1000).toLocaleString()} · ${m.revoked ? '<span class="badge b-bad">REVOKED</span>' : '<span class="badge b-ok">ACTIVE</span>'}</div>`;
+};
+
+/* Activity log */
+async function refreshLog() {
+  if (!CONFIG.addresses.invoiceBook) return;
+  const p = readProvider();
+  const c = contracts(p);
+  const latest = await p.getBlockNumber();
+  const from = Math.max(CONFIG.deployBlock || 0, latest - 20000);
+  const topics = [
+    [c.registry, "PayeeRegistered", (l) => `🏷️ Payee #${l.args[0]} registered — "${l.args[2]}" → <span class="mono">${short(l.args[1])}</span>`],
+    [c.registry, "PayeeVerificationSet", (l) => `${l.args[1] ? "✅" : "🚫"} Payee #${l.args[0]} verification set to ${l.args[1]}`],
+    [c.book, "InvoiceCreated", (l) => `🧾 Invoice #${l.args[0]} created — ${fmt(l.args[3])} to payee #${l.args[1]} (${l.args[4]})`],
+    [c.book, "InvoicePaid", (l) => `💸 Invoice #${l.args[0]} PAID — ${fmt(l.args[4])} → <span class="mono">${short(l.args[3])}</span>`],
+    [c.book, "InvoiceCancelled", (l) => `🗑️ Invoice #${l.args[0]} cancelled`],
+    [c.mandate, "MandateGranted", (l) => `🤖 Mandate #${l.args[0]} granted to <span class="mono">${short(l.args[2])}</span> — cap ${fmt(l.args[3])}, budget ${fmt(l.args[4])}`],
+    [c.mandate, "MandateRevoked", (l) => `⛔ Mandate #${l.args[0]} REVOKED`],
+    [c.mandate, "AgentPayment", (l) => `🤖💸 Agent paid invoice #${l.args[1]} under mandate #${l.args[0]} — ${fmt(l.args[3])}`],
+  ];
+  const all = [];
+  for (const [contract, event, render] of topics) {
+    try { (await contract.queryFilter(event, from, latest)).forEach((l) => all.push({ block: l.blockNumber, tx: l.transactionHash, html: render(l) })); } catch (_) {}
+  }
+  all.sort((a, b) => b.block - a.block);
+  $("activity").innerHTML = all.slice(0, 60).map((e) => `<div>${e.html} · block ${e.block} · ${txLink(e.tx)}</div>`).join("") || `<div class="sub">No events in range.</div>`;
+}
+$("btnRefreshLog").onclick = refreshLog;
+$("btnConnect").onclick = connect;
+
+loadDeployments().then(() => { if (CONFIG.addresses.invoiceBook) { refreshInvoices(); refreshLog(); } });
+</script>
+</body>
+</html>
