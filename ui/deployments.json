@@ -1,0 +1,25 @@
+{
+  "network": "aevum-testnet",
+  "chainId": 44005,
+  "rpcUrl": "https://rpc-test.qday.info",
+  "explorer": "https://explorer-test.qday.info",
+  "payeeRegistry": "0x8df477a83e397249B2CfE83292A51cFBFD098471",
+  "invoiceBook": "0x815F4274F27c197050384D6dAaF35f606cF1F8D5",
+  "agentMandate": "0xE49C4b3CDe3D7858f5E13C43fA8A62fFCf89473C",
+  "tUsd8": "0x456569838f1d43009A91ebA4263147Afd7233483",
+  "deployBlock": 3287259,
+  "mandateId": 2,
+  "mockToken": false,
+  "roles": {
+    "payer": "0x49FAdBEeAE33B33ECbceC6f6E43F1005086D2233",
+    "agent": "0xd458b839dbAfB401dB40F4F2097bc5F0EC5Ecb43",
+    "payee": "0x232C0b7811357C8f8A3e9520325cEf5f4E80C4fc"
+  },
+  "supersededDeployment": {
+    "note": "First deployment used Foundry's default Cancun EVM target; Aevum testnet rejects the MCOPY opcode, so the set was redeployed with evm_version=shanghai. These addresses are NOT used.",
+    "payeeRegistry": "0x043e67e3D9E621221bf6ad919b2db0d5299169cb",
+    "invoiceBook": "0x8f589b96195aE6B5E17632f729DDB3Ac4b6B2D94",
+    "agentMandate": "0xb94909D783452aB334c05f7d0F70579E857d35Aa",
+    "deployBlock": 3287061
+  }
+}
