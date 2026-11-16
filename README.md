@@ -150,3 +150,18 @@ agent payment attempt on INV-0143 **reverts**. Full transaction record:
 ## License
 
 MIT — see [LICENSE](LICENSE).
+
+## Live deployment — Aevum testnet (chain 44005)
+
+Deployed and demoed live on 2026-11-16. Explorer: https://explorer-test.qday.info
+
+| Contract | Address |
+|---|---|
+| PayeeRegistry | 0x8df477a83e397249B2CfE83292A51cFBFD098471 |
+| InvoiceBook | 0x815F4274F27c197050384D6dAaF35f606cF1F8D5 |
+| AgentMandate | 0xE49C4b3CDe3D7858f5E13C43fA8A62fFCf89473C |
+| tUSD8 (token) | 0x456569838f1d43009A91ebA4263147Afd7233483 |
+
+- UI: https://pecintamajor.github.io/payeeguard/
+- Full on-chain demo record (every tx hash): DEMO-FLOW-TESTNET.md — agent paid INV-0142 inside its mandate, payment reverted after revocation, then paid INV-0143 autonomously under a fresh mandate.
+- Demo amounts were scaled to faucet availability (1 tUSD8 total funding): invoice 0.4 / cap 0.5 / budget 0.9 / second invoice 0.3.
