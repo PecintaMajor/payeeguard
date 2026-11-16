@@ -1,0 +1,17 @@
+# dependencies
+node_modules/
+lib/
+out/
+cache/
+broadcast/
+agent/node_modules/
+
+# secrets — NEVER commit keys or env files
+.secrets/
+.env
+.env.*
+*.key
+wallets.json
+
+# local deployment scratch
+deployments.local.json

@@ -1,0 +1,72 @@
+{
+  "startedAt": "2026-11-16T02:31:25.938Z",
+  "chainId": 44005,
+  "rpc": "http://localhost:8545",
+  "steps": [
+    {
+      "name": "mock mint 10,000 tUSD8 -> payer (local rehearsal only)",
+      "tx": "0xa1057f5d69adab8a2f007be47cea4129238b897773939e6178a0f25512bd04ed"
+    },
+    {
+      "name": "register payee \"Acme Studio\"",
+      "payeeId": "1",
+      "payout": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "tx": "0x0383ef5fd404c488740d53a6ab2ab7fb53d325036f4b96f0b10ba2ea1e42d33f",
+      "explorer": "https://explorer-test.qday.info/tx/0x0383ef5fd404c488740d53a6ab2ab7fb53d325036f4b96f0b10ba2ea1e42d33f"
+    },
+    {
+      "name": "verify payee (Confirmation of Payee)",
+      "payeeId": "1",
+      "tx": "0x809b2947e1a6469573169bd8fadc8ca8541b77f7ce8bd38dddaff43d21c832df",
+      "explorer": "https://explorer-test.qday.info/tx/0x809b2947e1a6469573169bd8fadc8ca8541b77f7ce8bd38dddaff43d21c832df"
+    },
+    {
+      "name": "payer approves InvoiceBook for 500 tUSD8",
+      "tx": "0x9001f98a4cd59a2be026b444273793643ce36bbfbd53d222a2f7331a7cd082df",
+      "explorer": "https://explorer-test.qday.info/tx/0x9001f98a4cd59a2be026b444273793643ce36bbfbd53d222a2f7331a7cd082df"
+    },
+    {
+      "name": "create invoice INV-0142 (120 tUSD8)",
+      "invoiceId": "1",
+      "tx": "0xdf0c54896b33a660225fd28d9f76d2b5d00c8c282a49c61287b3706b19dd949f",
+      "explorer": "https://explorer-test.qday.info/tx/0xdf0c54896b33a660225fd28d9f76d2b5d00c8c282a49c61287b3706b19dd949f"
+    },
+    {
+      "name": "grant mandate to agent (cap 150, budget 500, 7 days)",
+      "mandateId": "1",
+      "tx": "0xa9aa1e18a60d43026b6ced04b03b473e7734cb1ec47ac6fbe318c40216d4347a",
+      "explorer": "https://explorer-test.qday.info/tx/0xa9aa1e18a60d43026b6ced04b03b473e7734cb1ec47ac6fbe318c40216d4347a"
+    },
+    {
+      "name": "AGENT pays INV-0142 under mandate",
+      "tx": "0xad7cb13aed0a6592962f09dce510274bc9320f8a962be75213497f12579aca8d",
+      "explorer": "https://explorer-test.qday.info/tx/0xad7cb13aed0a6592962f09dce510274bc9320f8a962be75213497f12579aca8d",
+      "receiptStatus": "success",
+      "invoiceStatus": "Paid",
+      "payeeBalanceDelta": "120 tUSD8"
+    },
+    {
+      "name": "create invoice INV-0143 (80 tUSD8)",
+      "invoiceId": "2",
+      "tx": "0x6435fbdb27d9d41e919df5d7425e1ad94964cf17485798f9906336eb17890f63",
+      "explorer": "https://explorer-test.qday.info/tx/0x6435fbdb27d9d41e919df5d7425e1ad94964cf17485798f9906336eb17890f63"
+    },
+    {
+      "name": "owner revokes mandate (instant)",
+      "mandateId": "1",
+      "tx": "0x20f62f4224fce00b655025612d3c4fda0af98acb95f78bdf57d308919eae445f",
+      "explorer": "https://explorer-test.qday.info/tx/0x20f62f4224fce00b655025612d3c4fda0af98acb95f78bdf57d308919eae445f"
+    },
+    {
+      "name": "agent payment attempt on INV-0143 after revocation",
+      "simulationError": "The contract function \"payInvoice\" reverted.",
+      "onChain": "tx-mined",
+      "tx": "0xd92afbfc64828ba9c78f256edc1973cc1615c0f48fb0c934d4d3389ecf0118b5",
+      "receiptStatus": "reverted",
+      "invoiceStatus": "Issued",
+      "expected": "reverted, invoice stays Issued"
+    }
+  ],
+  "finishedAt": "2026-11-16T02:31:26.222Z",
+  "result": "DEMO FLOW COMPLETE"
+}
