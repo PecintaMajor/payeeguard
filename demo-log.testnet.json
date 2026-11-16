@@ -1,0 +1,133 @@
+{
+  "startedAt": "2026-11-16T03:03:34.521Z",
+  "chainId": 44005,
+  "rpc": "https://rpc-test.qday.info",
+  "steps": [
+    {
+      "name": "register payee \"Acme Studio\"",
+      "payeeId": "1",
+      "payout": "0x232C0b7811357C8f8A3e9520325cEf5f4E80C4fc",
+      "tx": "0x4754757801fa378eaa50e2790a0c5f2965a95a1f4fec3be8b6ec510b05c63d31",
+      "explorer": "https://explorer-test.qday.info/tx/0x4754757801fa378eaa50e2790a0c5f2965a95a1f4fec3be8b6ec510b05c63d31"
+    },
+    {
+      "name": "verify payee (Confirmation of Payee)",
+      "payeeId": "1",
+      "tx": "0x5a434763f2a7b7347cb9a1136b014a147f89cd2ca688f5122838a10698391c7a",
+      "explorer": "https://explorer-test.qday.info/tx/0x5a434763f2a7b7347cb9a1136b014a147f89cd2ca688f5122838a10698391c7a"
+    },
+    {
+      "name": "payer approves InvoiceBook for 0.9 tUSD8",
+      "tx": "0x7e989d45960e9b8487139cc5b47f86d92ee3e764aa459b161e9fe4b6f45e6528",
+      "explorer": "https://explorer-test.qday.info/tx/0x7e989d45960e9b8487139cc5b47f86d92ee3e764aa459b161e9fe4b6f45e6528"
+    },
+    {
+      "name": "create invoice INV-0142 (0.4 tUSD8)",
+      "invoiceId": "1",
+      "tx": "0x741f6d6a7ef26b5e9b3bdea048949b3a737b5b2159134265e14ded328a420fbd",
+      "explorer": "https://explorer-test.qday.info/tx/0x741f6d6a7ef26b5e9b3bdea048949b3a737b5b2159134265e14ded328a420fbd"
+    },
+    {
+      "name": "grant mandate to agent (cap 0.5, budget 0.9, 7 days)",
+      "mandateId": "1",
+      "tx": "0x64724e07e07045c0fd4ef4103a13baac533ff16e76c7a826dc0c28e003d50fd3",
+      "explorer": "https://explorer-test.qday.info/tx/0x64724e07e07045c0fd4ef4103a13baac533ff16e76c7a826dc0c28e003d50fd3"
+    },
+    {
+      "name": "AGENT pays INV-0142 under mandate",
+      "tx": "0x0ba0997b2ffeb7182b1d957f0b57f9c6e95ebe6e492acdb69cee56aaacdd8234",
+      "explorer": "https://explorer-test.qday.info/tx/0x0ba0997b2ffeb7182b1d957f0b57f9c6e95ebe6e492acdb69cee56aaacdd8234",
+      "receiptStatus": "success",
+      "invoiceStatus": "Paid",
+      "payeeBalanceDelta": "0.4 tUSD8"
+    },
+    {
+      "name": "create invoice INV-0143 (0.3 tUSD8)",
+      "invoiceId": "2",
+      "tx": "0x99771209909742801f9a380c37203e795a537768562573689debe7ecb337f62e",
+      "explorer": "https://explorer-test.qday.info/tx/0x99771209909742801f9a380c37203e795a537768562573689debe7ecb337f62e"
+    },
+    {
+      "name": "owner revokes mandate (instant)",
+      "mandateId": "1",
+      "tx": "0xee702f34e1f1a2e44309242855074e28d7480c66f2ff4217e0f721120f99f9ed",
+      "explorer": "https://explorer-test.qday.info/tx/0xee702f34e1f1a2e44309242855074e28d7480c66f2ff4217e0f721120f99f9ed"
+    },
+    {
+      "name": "agent payment attempt on INV-0143 after revocation",
+      "simulationError": "The contract function \"payInvoice\" reverted.",
+      "onChain": "tx-mined",
+      "tx": "0x9e7c4f92d1b621b71dcc0b70f52ff9f6ee83af1d40b0acd4285e93f330abea1b",
+      "receiptStatus": "reverted",
+      "invoiceStatus": "Issued",
+      "expected": "reverted, invoice stays Issued"
+    }
+  ],
+  "finishedAt": "2026-11-16T03:05:08.464Z",
+  "result": "DEMO FLOW COMPLETE",
+  "deployment": {
+    "payeeRegistry": "0x8df477a83e397249B2CfE83292A51cFBFD098471",
+    "invoiceBook": "0x815F4274F27c197050384D6dAaF35f606cF1F8D5",
+    "agentMandate": "0xE49C4b3CDe3D7858f5E13C43fA8A62fFCf89473C",
+    "tUsd8": "0x456569838f1d43009A91ebA4263147Afd7233483",
+    "deployBlock": 3287259,
+    "evmVersion": "shanghai",
+    "deployTxs": {
+      "payeeRegistry": "0x232075a75e4547ec0c04a9e756f4414058f0ecc8e7483dbc4ee1382626f9a188",
+      "invoiceBook": "0x8b6a348601893448217a0deb3c07674aedf8dc944758f2c324be5fe6bd947d03",
+      "agentMandate": "0x8610f91cbd6c5c4a02ab1d24ff199f9c031285c5cf14a6357783d11b8c656899",
+      "setMandateContract": "0x8dd3c569e80c015112963afba329c730075a68a08d91c57d178f03deec71a0f3"
+    },
+    "supersededFirstDeployment": {
+      "note": "Deployed with Foundry default Cancun target; Aevum testnet rejects MCOPY (invalid opcode on string-returning calls). Register/verify succeeded there, confirmPayee reverted; set abandoned and redeployed with evm_version=shanghai.",
+      "payeeRegistry": "0x043e67e3D9E621221bf6ad919b2db0d5299169cb",
+      "invoiceBook": "0x8f589b96195aE6B5E17632f729DDB3Ac4b6B2D94",
+      "agentMandate": "0xb94909D783452aB334c05f7d0F70579E857d35Aa",
+      "deployBlock": 3287061,
+      "registerTx": "0xcca34a4f343955b76c84fcb46af52dd8843a73197dc5b54bf977b398f5e974bc",
+      "verifyTx": "0x512f5d716c836af8172e80a73cf2a617ad4314802ccc63e2b5bfd48f2c0ad1e3"
+    }
+  },
+  "bonusSteps": [
+    {
+      "name": "grant mandate #2 to agent (cap 0.5, budget 0.9, 7 days)",
+      "mandateId": "2",
+      "tx": "0xcaf99595c6f13eb4763fcdcb0e5522f03acae4e638dcc6ec149671104530cc0c",
+      "explorer": "https://explorer-test.qday.info/tx/0xcaf99595c6f13eb4763fcdcb0e5522f03acae4e638dcc6ec149671104530cc0c",
+      "block": 3287698
+    },
+    {
+      "name": "AGENT (poll mode, run --once) autonomously pays INV-0143 under mandate #2",
+      "invoiceId": "2",
+      "tx": "0x948ccba7746472c2d272155f40d0cbfba493c3801a5369266aaa09fa0f14a49e",
+      "explorer": "https://explorer-test.qday.info/tx/0x948ccba7746472c2d272155f40d0cbfba493c3801a5369266aaa09fa0f14a49e",
+      "receiptStatus": "success",
+      "invoiceStatus": "Paid"
+    }
+  ],
+  "finalState": {
+    "balances": {
+      "payer": {
+        "tQDAY": "3.498870582957234832",
+        "tUSD8": "0.3"
+      },
+      "agent": {
+        "tQDAY": "0.499564401999832",
+        "tUSD8": "0"
+      },
+      "payee": {
+        "tQDAY": "0",
+        "tUSD8": "0.7"
+      }
+    },
+    "invoices": {
+      "1": "Paid (INV-0142, 0.4 tUSD8)",
+      "2": "Paid (INV-0143, 0.3 tUSD8)"
+    },
+    "mandates": {
+      "1": "revoked=true, spent 0.4 tUSD8",
+      "2": "revoked=false, spent 0.3 tUSD8, cap 0.5, budget 0.9"
+    },
+    "copLookup": "confirmPayee(payee) -> id 1, \"Acme Studio\", verified=true"
+  }
+}
