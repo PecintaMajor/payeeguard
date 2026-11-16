@@ -5,8 +5,8 @@
  * Modes:
  *   node agent.mjs status   Read-only snapshot: balances, invoices, mandate.
  *   node agent.mjs demo     Scripted end-to-end demo flow (see DEMO-FLOW.md):
- *                           register+verify "Acme Studio" -> invoice INV-0142 (120 tUSD8)
- *                           -> grant mandate (cap 150 / budget 500 / 7 days)
+ *                           register+verify "Acme Studio" -> invoice INV-0142 (0.4 tUSD8)
+ *                           -> grant mandate (cap 0.5 / budget 0.9 / 7 days)
  *                           -> THE AGENT pays INV-0142 -> revoke -> agent payment on
  *                           INV-0143 correctly reverts.
  *   node agent.mjs run      Polling mode: scans for due Issued invoices of the mandate
@@ -157,25 +157,25 @@ async function demo() {
 
   // 3. Payer approves the InvoiceBook to pull up to the mandate budget
   const allowance = await read(TOK, 'allowance', [accounts.payer.address, BOOK.address]);
-  if (allowance < TUSD(500)) {
-    const r = await send('payer', TOK, 'approve', [BOOK.address, TUSD(500)]);
-    step('payer approves InvoiceBook for 500 tUSD8', { tx: r.hash, explorer: txLink(r.hash) });
+  if (allowance < TUSD(0.9)) {
+    const r = await send('payer', TOK, 'approve', [BOOK.address, TUSD(0.9)]);
+    step('payer approves InvoiceBook for 0.9 tUSD8', { tx: r.hash, explorer: txLink(r.hash) });
   } else step('allowance already sufficient', { allowance: fmt(allowance) });
 
   // 4. Create invoice INV-0142 for 120 tUSD8
   const before1 = await read(BOOK, 'invoiceCount');
   const inv1 = before1 + 1n;
   {
-    const r = await send('payer', BOOK, 'createInvoice', [acmeId, TUSD(120), 'INV-0142', 0n, keccak256(toBytes('INV-0142 memo'))]);
-    step('create invoice INV-0142 (120 tUSD8)', { invoiceId: inv1.toString(), tx: r.hash, explorer: txLink(r.hash) });
+    const r = await send('payer', BOOK, 'createInvoice', [acmeId, TUSD(0.4), 'INV-0142', 0n, keccak256(toBytes('INV-0142 memo'))]);
+    step('create invoice INV-0142 (0.4 tUSD8)', { invoiceId: inv1.toString(), tx: r.hash, explorer: txLink(r.hash) });
   }
 
   // 5. Grant the agent a mandate: cap 150, budget 500, 7 days
   const nextMid = await read(MAND, 'nextMandateId');
   const expiry = BigInt(Math.floor(Date.now() / 1000) + 7 * 24 * 3600);
   {
-    const r = await send('payer', MAND, 'grantMandate', [accounts.agent.address, TUSD(150), TUSD(500), expiry, BOOK.address, false, []]);
-    step('grant mandate to agent (cap 150, budget 500, 7 days)', { mandateId: nextMid.toString(), tx: r.hash, explorer: txLink(r.hash) });
+    const r = await send('payer', MAND, 'grantMandate', [accounts.agent.address, TUSD(0.5), TUSD(0.9), expiry, BOOK.address, false, []]);
+    step('grant mandate to agent (cap 0.5, budget 0.9, 7 days)', { mandateId: nextMid.toString(), tx: r.hash, explorer: txLink(r.hash) });
   }
   dep.mandateId = Number(nextMid);
   fs.writeFileSync(DEPLOYMENTS_FILE, JSON.stringify(dep, null, 2));
@@ -198,8 +198,8 @@ async function demo() {
   const before2 = await read(BOOK, 'invoiceCount');
   const inv2 = before2 + 1n;
   {
-    const r = await send('payer', BOOK, 'createInvoice', [acmeId, TUSD(80), 'INV-0143', 0n, keccak256(toBytes('INV-0143 memo'))]);
-    step('create invoice INV-0143 (80 tUSD8)', { invoiceId: inv2.toString(), tx: r.hash, explorer: txLink(r.hash) });
+    const r = await send('payer', BOOK, 'createInvoice', [acmeId, TUSD(0.3), 'INV-0143', 0n, keccak256(toBytes('INV-0143 memo'))]);
+    step('create invoice INV-0143 (0.3 tUSD8)', { invoiceId: inv2.toString(), tx: r.hash, explorer: txLink(r.hash) });
   }
   {
     const r = await send('payer', MAND, 'revokeMandate', [nextMid]);
