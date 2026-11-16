@@ -1,0 +1,11 @@
+{
+  "name": "payeeguard-agent",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "PayeeGuard agent runner — polls InvoiceBook and pays due invoices within an AgentMandate.",
+  "license": "MIT",
+  "dependencies": {
+    "viem": "^2.38.0"
+  }
+}
